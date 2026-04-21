@@ -14,8 +14,10 @@ interface PixDepositProps {
   profile: UserProfile;
 }
 
-export default function PixDeposit({ onClose, userId, userEmail }: PixDepositProps) {
+export default function PixDeposit({ onClose, userId, userEmail, profile }: PixDepositProps) {
   const [amount, setAmount] = useState<string>('100');
+  const [cpf, setCpf] = useState<string>(profile?.cpf || '');
+  const [phone, setPhone] = useState<string>(profile?.phone || '');
   const [status, setStatus] = useState<'input' | 'loading' | 'redirect' | 'qr_code' | 'success'>('input');
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [qrCodeData, setQrCodeData] = useState<{ image: string; code: string } | null>(null);
@@ -46,7 +48,9 @@ export default function PixDeposit({ onClose, userId, userEmail }: PixDepositPro
       const response = await axios.post(apiUrl('/api/billing/create'), {
         amount: value,
         userId: userId,
-        email: userEmail, 
+        email: userEmail,
+        cpf: cpf.replace(/[^0-9]/g, ''),
+        phone: phone.replace(/[^0-9]/g, ''),
       });
 
       // Update the transaction with the billing ID for better webhook matching
@@ -142,13 +146,32 @@ export default function PixDeposit({ onClose, userId, userEmail }: PixDepositPro
                 />
               </div>
 
+              <div className="space-y-3 mb-4">
+                <input
+                  type="text"
+                  value={cpf}
+                  onChange={(e) => setCpf(e.target.value)}
+                  placeholder="CPF (somente números)"
+                  maxLength={14}
+                  className="w-full px-6 py-4 bg-brand-slate-50 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-brand-slate-900 outline-none transition-all text-sm placeholder:text-brand-slate-400"
+                />
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Telefone com DDD (somente números)"
+                  maxLength={15}
+                  className="w-full px-6 py-4 bg-brand-slate-50 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-brand-slate-900 outline-none transition-all text-sm placeholder:text-brand-slate-400"
+                />
+              </div>
+
               {error && (
                 <p className="text-rose-500 text-xs font-bold text-center mb-6 uppercase tracking-wider">{error}</p>
               )}
 
               <button 
                 onClick={handleCreateBilling}
-                disabled={!amount || parseFloat(amount) <= 0}
+                disabled={!amount || parseFloat(amount) <= 0 || cpf.replace(/[^0-9]/g, '').length < 11 || phone.replace(/[^0-9]/g, '').length < 10}
                 className="w-full py-5 bg-brand-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-brand-slate-800 transition-all active:scale-95 disabled:grayscale disabled:opacity-50"
               >
                 Gerar Pagamento Real
