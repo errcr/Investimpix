@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-primary: #32BCAD;
+  --color-brand-dark-teal: #1B9084;
+  --color-brand-slate-50: #F8FAFC;
+  --color-brand-slate-100: #F1F5F9;
+  --color-brand-slate-200: #E2E8F0;
+  --color-brand-slate-500: #64748B;
+  --color-brand-slate-800: #1E293B;
+  --color-brand-slate-900: #0F172A;
+  
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+@layer base {
+  body {
+    @apply bg-brand-slate-50 text-brand-slate-800 antialiased font-sans;
+  }
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-[10px] border border-white/40 shadow-sm;
+}
+
+.pix-gradient {
+  background: linear-gradient(135deg, #32BCAD 0%, #1B9084 100%);
+}
+
+.sidebar-item-active {
+  @apply bg-brand-primary/10 text-brand-dark-teal border-r-3 border-brand-primary;
+}
+
+.balance-glow {
+  text-shadow: 0 0 20px rgba(50, 188, 173, 0.2);
+}
+
+/* Custom scrollbar for clean look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-brand-slate-200 rounded-full;
+}

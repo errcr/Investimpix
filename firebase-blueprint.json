@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account data and balance",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "balance": { "type": "number" },
+        "totalInvested": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "balance"]
+    },
+    "Investment": {
+      "title": "User Investment",
+      "description": "Information about a specific investment made by a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "portfolioId": { "type": "string" },
+        "portfolioName": { "type": "string" },
+        "amount": { "type": "number" },
+        "investedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "withdrawn"] }
+      },
+      "required": ["userId", "portfolioId", "amount", "investedAt"]
+    },
+    "Transaction": {
+      "title": "Financial Transaction",
+      "description": "Record of deposits (Pix) or withdrawals",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal", "investment"] },
+        "amount": { "type": "number" },
+        "pixKey": { "type": "string", "description": "Simulator Pix key used" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["completed", "pending"] }
+      },
+      "required": ["userId", "type", "amount", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user profiles"
+    },
+    "/users/{userId}/investments/{investmentId}": {
+      "schema": "Investment",
+      "description": "Active investments for a specific user"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Transaction history for a specific user"
+    }
+  }
+}
