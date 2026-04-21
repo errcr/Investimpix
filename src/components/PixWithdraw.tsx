@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { X, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import axios from 'axios';
-import { apiUrl } from '../lib/api';
 
 interface PixWithdrawProps {
   onClose: () => void;
@@ -36,7 +35,7 @@ export default function PixWithdraw({ onClose, userId, balance }: PixWithdrawPro
 
     try {
       // Use the secure backend API instead of direct Firestore writes
-      const response = await axios.post(apiUrl('/api/withdraw/request'), {
+      const response = await axios.post('/api/withdraw/request', {
         amount: value,
         userId: userId,
         pixKey: pixKey
@@ -111,13 +110,32 @@ export default function PixWithdraw({ onClose, userId, balance }: PixWithdrawPro
                 </div>
               </div>
 
+              {amount && parseFloat(amount) > 0 && (
+                <div className="bg-brand-slate-50 rounded-2xl p-4 mb-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-brand-slate-400 font-medium">Valor solicitado</span>
+                    <span className="font-bold text-brand-slate-900">R$ {parseFloat(amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-brand-slate-400 font-medium">Taxa</span>
+                    <span className="font-bold text-rose-500">- R$ 0,80</span>
+                  </div>
+                  <div className="border-t border-brand-slate-200 pt-2 flex justify-between text-sm">
+                    <span className="text-brand-slate-600 font-bold">Você receberá</span>
+                    <span className="font-bold text-brand-primary text-base">
+                      R$ {Math.max(0, parseFloat(amount) - 0.80).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <p className="text-rose-500 text-xs font-bold text-center mb-6 uppercase tracking-wider">{error}</p>
               )}
 
               <button 
                 onClick={handleWithdraw}
-                disabled={!amount || !pixKey || parseFloat(amount) <= 0 || parseFloat(amount) > balance}
+                disabled={!amount || !pixKey || parseFloat(amount) <= 0.80 || parseFloat(amount) > balance}
                 className="w-full py-5 bg-brand-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-brand-slate-800 transition-all active:scale-95 disabled:grayscale disabled:opacity-50"
               >
                 Solicitar Saque
