@@ -280,12 +280,12 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
                 <p className="text-2xl font-bold text-brand-slate-900">R$ {profile.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
               <div className="glass-card p-6 rounded-[24px]">
-                <p className="text-xs font-bold text-brand-slate-400 uppercase mb-1 tracking-widest">Ativos Ativos</p>
-                <p className="text-2xl font-bold text-brand-slate-900">{investments.length}</p>
+                <p className="text-xs font-bold text-brand-slate-400 uppercase mb-1 tracking-widest">Portfólios Ativos</p>
+                <p className="text-2xl font-bold text-brand-slate-900">{investments.filter(i => i.status === 'active').length}</p>
               </div>
               <div className="glass-card p-6 rounded-[24px]">
-                <p className="text-xs font-bold text-brand-slate-400 uppercase mb-1 tracking-widest">Performance Mês</p>
-                <p className="text-2xl font-bold text-emerald-500">+4.2%</p>
+                <p className="text-xs font-bold text-brand-slate-400 uppercase mb-1 tracking-widest">Saldo Disponível</p>
+                <p className="text-2xl font-bold text-brand-primary">R$ {profile.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
 
