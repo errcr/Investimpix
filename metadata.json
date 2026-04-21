@@ -1,0 +1,8 @@
+{
+  "name": "InvestimPix",
+  "description": "Plataforma de investimentos inteligente e rápida via Pix, com assessoria de IA e portfólios personalizados.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}

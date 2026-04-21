@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isEmailVerified() { return request.auth.token.email_verified == true; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- Validation Blueprints ---
+    function isValidUser(data) {
+      return data.uid == request.auth.uid 
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.email == request.auth.token.email
+        && data.balance is number && data.balance >= 0
+        && data.totalInvested is number && data.totalInvested >= 0;
+    }
+
+    function isValidInvestment(data) {
+      return data.userId == request.auth.uid
+        && data.portfolioId is string && isValidId(data.portfolioId)
+        && data.amount is number && data.amount > 0
+        && data.investedAt is timestamp && data.investedAt <= request.time;
+    }
+
+    function isValidTransaction(data) {
+      return data.userId == request.auth.uid
+        && data.type in ['deposit', 'withdrawal', 'investment']
+        && data.amount is number && data.amount > 0
+        && data.timestamp is timestamp && data.timestamp <= request.time
+        && data.status in ['completed', 'pending'];
+    }
+
+    // --- Collection Rules ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isEmailVerified() && isValidUser(incoming()) 
+                      && incoming().balance == 0 && incoming().totalInvested == 0;
+      allow update: if isOwner(userId) && isEmailVerified() && isValidUser(incoming())
+                      && incoming().uid == existing().uid
+                      && incoming().email == existing().email;
+
+      match /investments/{investmentId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId);
+        allow create: if isOwner(userId) && isEmailVerified() && isValidInvestment(incoming());
+        allow update: if isOwner(userId) && isEmailVerified() && isValidInvestment(incoming())
+                        && incoming().userId == existing().userId;
+      }
+
+      match /transactions/{transactionId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId);
+        allow create: if isOwner(userId) && isEmailVerified() && isValidTransaction(incoming());
+        // Transactions are generally immutable after 'completed'
+        allow update: if isOwner(userId) && isEmailVerified() && isValidTransaction(incoming())
+                        && existing().status != 'completed'
+                        && incoming().userId == existing().userId;
+      }
+    }
+  }
+}
