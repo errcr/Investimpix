@@ -510,13 +510,48 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
         )}
       </AnimatePresence>
 
-      {/* Floating Meta Assistant Toggle for Mobile */}
-      <button 
-        onClick={() => setShowAdvisor(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-brand-dark-teal text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-95 transition-all z-50"
-      >
-        <Bot size={28} />
-      </button>
+      {/* Bottom Navigation Bar for Mobile */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-brand-slate-100 shadow-lg z-50 px-2 pb-safe">
+        <div className="flex items-center justify-around py-2">
+          <button
+            onClick={() => setActiveTab('inicio')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'inicio' ? 'text-brand-primary' : 'text-brand-slate-400'}`}
+          >
+            <Home size={22} />
+            <span className="text-[10px] font-bold">Início</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('investimentos')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'investimentos' ? 'text-brand-primary' : 'text-brand-slate-400'}`}
+          >
+            <TrendingIcon size={22} />
+            <span className="text-[10px] font-bold">Investir</span>
+          </button>
+          <button
+            onClick={() => setShowPix(true)}
+            className="flex flex-col items-center gap-1 px-4 py-2"
+          >
+            <div className="w-12 h-12 pix-gradient rounded-2xl flex items-center justify-center shadow-lg -mt-4">
+              <Plus size={24} className="text-white" />
+            </div>
+            <span className="text-[10px] font-bold text-brand-primary">Depositar</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('carteira')}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === 'carteira' ? 'text-brand-primary' : 'text-brand-slate-400'}`}
+          >
+            <WalletIcon size={22} />
+            <span className="text-[10px] font-bold">Carteira</span>
+          </button>
+          <button
+            onClick={() => setShowAdvisor(true)}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all text-brand-slate-400`}
+          >
+            <Bot size={22} />
+            <span className="text-[10px] font-bold">IA</span>
+          </button>
+        </div>
+      </nav>
 
       {/* Modals */}
       <AnimatePresence>
