@@ -116,7 +116,7 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
                 <div className="flex justify-between items-start">
                   <span className="text-brand-slate-500 font-medium">Patrimônio Total</span>
                   <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-full border border-emerald-100">+12,4%</span>
+
                     <button 
                       onClick={() => setShowWithdraw(true)}
                       className="px-3 py-1 bg-brand-slate-50 text-brand-slate-500 text-xs font-bold rounded-full border border-brand-slate-100 hover:bg-brand-slate-100 transition-colors"
@@ -479,9 +479,6 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
             <p className="text-brand-slate-500">Simulação de rendimentos baseada em dados de mercado.</p>
           </div>
           <div className="flex items-center gap-4">
-            <button className="bg-white border border-brand-slate-200 px-6 py-2 rounded-full text-sm font-medium hover:bg-brand-slate-50 transition-colors shadow-sm">
-              Metas
-            </button>
             <div className="w-10 h-10 bg-brand-slate-200 rounded-full flex items-center justify-center font-bold text-brand-slate-500 shadow-inner">
               {profile.name.charAt(0)}
             </div>
