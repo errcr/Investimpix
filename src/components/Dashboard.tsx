@@ -159,20 +159,46 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
             <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div className="xl:col-span-1 bg-white p-8 rounded-[32px] border border-brand-slate-100 shadow-sm flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-lg mb-6 text-brand-slate-900">Rentabilidade</h3>
+                  <h3 className="font-bold text-lg mb-6 text-brand-slate-900">Patrimônio</h3>
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-1.5 h-12 bg-brand-primary rounded-full"></div>
                     <div>
-                      <p className="text-[10px] text-brand-slate-400 uppercase font-bold tracking-widest">Meta de Março</p>
-                      <p className="text-2xl font-bold text-brand-slate-900">82%</p>
+                      <p className="text-[10px] text-brand-slate-400 uppercase font-bold tracking-widest">Em Investimento</p>
+                      <p className="text-2xl font-bold text-brand-slate-900">
+                        R$ {profile.totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-1.5 h-12 bg-emerald-400 rounded-full"></div>
+                    <div>
+                      <p className="text-[10px] text-brand-slate-400 uppercase font-bold tracking-widest">Saldo Disponível</p>
+                      <p className="text-2xl font-bold text-brand-slate-900">
+                        R$ {profile.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="w-full bg-brand-slate-100 h-2.5 rounded-full overflow-hidden">
-                    <div className="bg-brand-primary h-full w-[82%] rounded-full"></div>
+                  <div className="flex justify-between text-xs font-bold text-brand-slate-400 uppercase tracking-widest">
+                    <span>Investido</span>
+                    <span>
+                      {profile.totalInvested + profile.balance > 0
+                        ? Math.round((profile.totalInvested / (profile.totalInvested + profile.balance)) * 100)
+                        : 0}%
+                    </span>
                   </div>
-                  <p className="text-xs text-brand-slate-400 font-medium">Você está a R$ 1.200 da sua meta mensal.</p>
+                  <div className="w-full bg-brand-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-brand-primary h-full rounded-full transition-all duration-500"
+                      style={{ width: `${profile.totalInvested + profile.balance > 0 ? Math.round((profile.totalInvested / (profile.totalInvested + profile.balance)) * 100) : 0}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-brand-slate-400 font-medium">
+                    {profile.totalInvested > 0 
+                      ? `${Math.round((profile.totalInvested / (profile.totalInvested + profile.balance)) * 100)}% do seu patrimônio está investido.`
+                      : 'Faça seu primeiro investimento para começar a render.'}
+                  </p>
                 </div>
               </div>
 
