@@ -21,6 +21,16 @@ async function startServer() {
   console.log("Starting server initialization...");
   app.use(express.json());
 
+  // CORS
+  app.use((req, res, next) => {
+    const origin = process.env.ALLOWED_ORIGIN || '*';
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
+  });
+
   // CORS — permite chamadas do frontend (Cloudflare Pages)
   app.use((req, res, next) => {
     const origin = process.env.ALLOWED_ORIGIN || '*';
@@ -142,27 +152,30 @@ async function startServer() {
       const priceCents = Math.round(numericAmount * 100);
 
       const payload = {
-        frequency: "ONE_TIME",
-        methods: ["PIX"],
-        amount: priceCents,
-        customer: {
-          name: "Cliente PixVest",
-          email: String(email || "cliente@pixvest.com"),
-          taxId: "92015743200", 
-          cellphone: "69993242628",
-        },
-        metadata: {
-          userId: userId
+        method: "PIX",
+        data: {
+          amount: priceCents,
+          expiresIn: 86400,
+          description: `Depósito InvestimPix - R$ ${numericAmount.toFixed(2)}`,
+          customer: {
+            name: "Cliente InvestimPix",
+            email: String(email || "cliente@investimpix.com"),
+            taxId: "92015743200",
+            cellphone: "69993242628",
+          },
+          metadata: {
+            userId: userId
+          }
         }
       };
 
-      console.log(`[DEPOSIT] Calling AbacatePay V2 Billings (Plural) Endpoint... Amount: ${priceCents} cents`);
+      console.log(`[DEPOSIT] Calling AbacatePay v2/transparents/create... Amount: ${priceCents} cents`);
       
-      currentStep = "calling_v2_billings";
+      currentStep = "calling_transparents_create";
       
       let response;
       try {
-        const axiosRes = await axios.post("https://api.abacatepay.com/v2/billings", payload, {
+        const axiosRes = await axios.post("https://api.abacatepay.com/v2/transparents/create", payload, {
           headers: {
             Authorization: `Bearer ${ABACATE_KEY?.trim()}`,
             "Content-Type": "application/json"
@@ -171,22 +184,24 @@ async function startServer() {
         response = axiosRes.data;
       } catch (apiErr: any) {
         const errorData = apiErr.response?.data || apiErr.message;
-        console.error("[DEPOSIT] Billings API V2 failed:", JSON.stringify(errorData, null, 2));
+        console.error("[DEPOSIT] transparents/create failed:", JSON.stringify(errorData, null, 2));
         
         return res.status(400).json({ 
-          error: errorData.error || errorData.message || "Erro na criação da cobrança", 
+          error: errorData.error || errorData.message || "Erro na criação do QR Code PIX", 
           step: currentStep,
           details: errorData
         });
       }
 
       currentStep = "processing_response";
-      const billingData = response?.data || response;
+      const pixData = response?.data || response;
       
-      console.log(`[DEPOSIT] Success! Checkout ID: ${billingData?.id}`);
+      console.log(`[DEPOSIT] Success! PIX ID: ${pixData?.id}`);
       res.json({ 
-        url: billingData.url,
-        id: billingData.id
+        id: pixData.id,
+        qrCode: pixData.brCodeBase64,
+        copyPaste: pixData.brCode,
+        expiresAt: pixData.expiresAt,
       });
 
     } catch (error: any) {
@@ -256,7 +271,7 @@ async function startServer() {
       console.log(`[WEBHOOK] Received event: ${payload.event} for object id: ${data?.id}`);
 
       // V2 events: checkout.completed is standard, billing.paid might be sent depending on setup
-      if (payload.event === "checkout.completed" || payload.event === "billing.paid") {
+      if (payload.event === "transparent.completed" || payload.event === "pixQrCode.paid" || payload.event === "checkout.completed") {
         const id = data.id;
         const customerId = data.metadata?.userId; 
         const amountCents = data.amount;
