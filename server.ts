@@ -214,47 +214,111 @@ async function startServer() {
     }
   });
 
-  // 3. Request withdrawal (Saque)
+  // 3. Request withdrawal (Saque Real via AbacatePay PIX)
   app.post("/api/withdraw/request", async (req, res) => {
     try {
-      const { amount, userId, pixKey } = req.body;
+      const { amount, userId, pixKey, pixKeyType } = req.body;
       const value = parseFloat(amount);
+      const ABACATE_KEY = process.env.ABACATEPAY_API_KEY;
 
       if (isNaN(value) || value <= 0) {
         return res.status(400).json({ error: "Valor de saque inválido" });
       }
+      if (!pixKey?.trim()) {
+        return res.status(400).json({ error: "Chave PIX inválida" });
+      }
 
       const userRef = db.collection("users").doc(userId);
 
-      // Secure transaction to check balance and update
+      // Debitar saldo e criar transação pendente
+      let txId: string;
       const result = await db.runTransaction(async (t) => {
         const userDoc = await t.get(userRef);
         if (!userDoc.exists) throw new Error("Usuário não encontrado");
 
         const currentBalance = userDoc.data()?.balance || 0;
-        if (currentBalance < value) {
-          throw new Error("Saldo insuficiente");
-        }
+        if (currentBalance < value) throw new Error("Saldo insuficiente");
 
-        // Deduct balance
         t.update(userRef, { balance: currentBalance - value });
 
-        // Add transaction record
         const txRef = userRef.collection("transactions").doc();
+        txId = txRef.id;
         t.set(txRef, {
           userId,
           type: "withdrawal",
           amount: value,
           pixKey,
-          status: "completed", // In a real production app, this might be "processing" until actual Pix transfer
+          status: "pending",
           timestamp: admin.firestore.FieldValue.serverTimestamp(),
-          provider: "system"
+          provider: "abacatepay"
         });
 
         return { newBalance: currentBalance - value };
       });
 
-      res.json({ success: true, balance: result.newBalance });
+      // Enviar PIX real via AbacatePay
+      const priceCents = Math.round(value * 100);
+      
+      // Detectar tipo da chave PIX automaticamente
+      const cleanKey = pixKey.trim().replace(/\D/g, '');
+      let detectedType = pixKeyType || "CPF";
+      if (pixKey.includes("@")) detectedType = "EMAIL";
+      else if (cleanKey.length === 11 && !pixKey.includes(".")) detectedType = "PHONE";
+      else if (cleanKey.length === 11) detectedType = "CPF";
+      else if (cleanKey.length === 14) detectedType = "CNPJ";
+      else detectedType = "EVP";
+
+      const pixPayload = {
+        amount: priceCents,
+        externalId: `saque-${userId}-${Date.now()}`,
+        description: `Saque InvestimPix`,
+        pix: {
+          key: pixKey.trim(),
+          type: detectedType
+        }
+      };
+
+      try {
+        const pixRes = await axios.post("https://api.abacatepay.com/v2/pix/send", pixPayload, {
+          headers: {
+            Authorization: `Bearer ${ABACATE_KEY?.trim()}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        const pixData = pixRes.data?.data || pixRes.data;
+
+        // Atualizar transação como concluída
+        const txRef = userRef.collection("transactions").doc(txId!);
+        await txRef.update({ 
+          status: "completed",
+          abacateId: pixData.id,
+          receiptUrl: pixData.receiptUrl,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`[WITHDRAW] PIX sent successfully: ${pixData.id}`);
+        res.json({ success: true, balance: result.newBalance, receiptUrl: pixData.receiptUrl });
+
+      } catch (pixErr: any) {
+        const errorData = pixErr.response?.data || pixErr.message;
+        console.error("[WITHDRAW] PIX send failed:", JSON.stringify(errorData));
+
+        // Reverter saldo se PIX falhou
+        await db.runTransaction(async (t) => {
+          const userDoc = await t.get(userRef);
+          const currentBalance = userDoc.data()?.balance || 0;
+          t.update(userRef, { balance: currentBalance + value });
+          const txRef = userRef.collection("transactions").doc(txId!);
+          t.update(txRef, { status: "failed" });
+        });
+
+        return res.status(400).json({ 
+          error: errorData?.error || "Falha ao enviar PIX. Saldo revertido.",
+          details: errorData
+        });
+      }
+
     } catch (error: any) {
       console.error("Withdrawal error:", error.message);
       res.status(500).json({ error: error.message || "Falha ao processar saque" });
