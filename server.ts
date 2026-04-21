@@ -4,11 +4,9 @@ dotenv.config();
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createServer as createViteServer } from "vite";
 import axios from "axios";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
-import * as AbacatePayNamespace from "@abacatepay/sdk";
 import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +20,16 @@ async function startServer() {
 
   console.log("Starting server initialization...");
   app.use(express.json());
+
+  // CORS — permite chamadas do frontend (Cloudflare Pages)
+  app.use((req, res, next) => {
+    const origin = process.env.ALLOWED_ORIGIN || '*';
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
+  });
 
   // LISTEN EARLY so the platform detects the server as started
   app.listen(PORT, "0.0.0.0", () => {
@@ -82,24 +90,7 @@ async function startServer() {
     console.log("Checking for AbacatePay configuration...");
     const ABACATE_KEY = process.env.ABACATEPAY_API_KEY;
     if (ABACATE_KEY && ABACATE_KEY.trim().length > 0) {
-      console.log("ABACATEPAY_API_KEY found.");
-      
-      try {
-        // Resolve constructor from namespace or default
-        const SDK: any = AbacatePayNamespace;
-        const AbacatePayConstructor = SDK.AbacatePay || (SDK.default && SDK.default.AbacatePay) || SDK.default;
-        
-        if (typeof AbacatePayConstructor !== 'function') {
-          console.error("AbacatePay property found but is not a constructor:", typeof AbacatePayConstructor);
-          throw new Error("AbacatePay SDK resolution failed: No constructor found");
-        }
-        
-        const abacate = new AbacatePayConstructor(ABACATE_KEY.trim());
-        app.set("abacate", abacate);
-        console.log("AbacatePay SDK instance created (Version: v2 ready).");
-      } catch (sdkError: any) {
-        console.error("Critical error initializing AbacatePay SDK:", sdkError.message);
-      }
+      console.log("ABACATEPAY_API_KEY found. Using direct axios calls.");
     } else {
       console.warn("CRITICAL: ABACATEPAY_API_KEY is missing or empty!");
     }
@@ -310,27 +301,9 @@ async function startServer() {
     }
   });
 
-  // --- Vite Middleware (Mounted last as fallback for SPA) ---
-  if (process.env.NODE_ENV !== "production") {
-    console.log("Initializing Vite...");
-    try {
-      const vite = await createViteServer({
-        server: { middlewareMode: true },
-        appType: "spa",
-      });
-      app.use(vite.middlewares);
-      console.log("Vite middleware added.");
-    } catch (vError) {
-      console.error("Vite failed to start:", vError);
-    }
-  } else {
-    console.log("Production mode: serving static files.");
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+  // --- API-only mode for Railway (frontend served by Cloudflare Pages) ---
+  // The frontend is deployed separately, so we skip Vite/static serving.
+  console.log("Backend-only mode: skipping Vite/static file serving.");
 }
 
 // Global catch-all for the whole server process
