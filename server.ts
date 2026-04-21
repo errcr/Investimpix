@@ -59,9 +59,23 @@ async function startServer() {
     }
 
     console.log("[FIREBASE] Initializing fresh Admin SDK for project:", firebaseConfig.projectId);
-    const firebaseAdminApp = admin.initializeApp({
-      projectId: firebaseConfig.projectId,
-    });
+    
+    // Use service account credentials from environment variable if available
+    let firebaseAdminApp;
+    const credentialsJson = process.env.FIREBASE_CREDENTIALS;
+    if (credentialsJson) {
+      const credentials = JSON.parse(credentialsJson);
+      firebaseAdminApp = admin.initializeApp({
+        credential: admin.credential.cert(credentials),
+        projectId: firebaseConfig.projectId,
+      });
+      console.log("[FIREBASE] Using service account credentials from env.");
+    } else {
+      firebaseAdminApp = admin.initializeApp({
+        projectId: firebaseConfig.projectId,
+      });
+      console.log("[FIREBASE] Using default credentials.");
+    }
     
     // Explicitly select the database
     const dbId = firebaseConfig.firestoreDatabaseId || "(default)";
