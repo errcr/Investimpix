@@ -7,11 +7,11 @@ import { db } from '../lib/firebase';
 
 interface InvestmentCardProps {
   portfolio: Portfolio;
-  canInvest: boolean;
+  userBalance: number;
   userId: string;
 }
 
-export default function InvestmentCard({ portfolio, canInvest, userId }: InvestmentCardProps) {
+export default function InvestmentCard({ portfolio, userBalance, userId }: InvestmentCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [investing, setInvesting] = useState(false);
   const [amount, setAmount] = useState('50');
@@ -137,7 +137,7 @@ export default function InvestmentCard({ portfolio, canInvest, userId }: Investm
                   <div className="flex flex-col gap-3">
                     <button 
                       onClick={handleInvest}
-                      disabled={investing || !canInvest || !amount || parseFloat(amount) <= 0}
+                      disabled={investing || parseFloat(amount) > userBalance || !amount || parseFloat(amount) <= 0}
                       className="w-full py-4 bg-brand-slate-900 text-white font-bold rounded-2xl hover:bg-brand-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
                     >
                       {investing ? 'Processando...' : 'Confirmar Investimento'}
@@ -149,8 +149,8 @@ export default function InvestmentCard({ portfolio, canInvest, userId }: Investm
                       Cancelar
                     </button>
                   </div>
-                  {!canInvest && (
-                    <p className="mt-3 text-[10px] text-rose-500 font-bold text-center italic uppercase tracking-widest">Saldo insuficiente</p>
+                  {parseFloat(amount) > userBalance && (
+                    <p className="mt-3 text-[10px] text-rose-500 font-bold text-center italic uppercase tracking-widest">Saldo insuficiente (disponível: R$ {userBalance.toFixed(2)})</p>
                   )}
                 </>
               ) : (

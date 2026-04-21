@@ -265,7 +265,7 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
                   key={item.id} 
                   portfolio={item} 
                   userId={profile.uid} 
-                  canInvest={profile.balance > 0} 
+                  userBalance={profile.balance} 
                 />
               ))}
             </div>
