@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -111,7 +112,9 @@ export default function App() {
                 <LogIn className="w-5 h-5 text-brand-primary" />
                 Criar Conta Grátis
               </button>
-              <button className="px-10 py-5 bg-white border border-brand-slate-200 text-brand-slate-600 rounded-[24px] font-bold text-lg hover:bg-brand-slate-50 transition-all active:scale-95">
+              <button 
+                onClick={() => setShowHowItWorks(true)}
+                className="px-10 py-5 bg-white border border-brand-slate-200 text-brand-slate-600 rounded-[24px] font-bold text-lg hover:bg-brand-slate-50 transition-all active:scale-95">
                 Saiba Mais
               </button>
             </div>
@@ -142,6 +145,97 @@ export default function App() {
           )
         )}
       </AnimatePresence>
+
+      {/* How It Works Modal */}
+      {showHowItWorks && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowHowItWorks(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto"
+          >
+            <button 
+              onClick={() => setShowHowItWorks(false)}
+              className="absolute top-6 right-6 w-10 h-10 bg-brand-slate-100 rounded-full flex items-center justify-center text-brand-slate-500 hover:bg-brand-slate-200 transition-all z-10"
+            >
+              ✕
+            </button>
+
+            <div className="p-8">
+              <div className="w-12 h-12 pix-gradient rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg mb-6">P</div>
+              <h2 className="text-3xl font-bold text-brand-slate-900 mb-2">Como funciona o InvestimPix?</h2>
+              <p className="text-brand-slate-500 mb-10">Simples, rápido e seguro. Veja como fazer seu dinheiro render.</p>
+
+              <div className="space-y-6">
+                {[
+                  {
+                    step: "01",
+                    title: "Crie sua conta grátis",
+                    desc: "Entre com sua conta Google em segundos. Sem burocracia, sem documentos, sem espera.",
+                    color: "#32BCAD"
+                  },
+                  {
+                    step: "02", 
+                    title: "Deposite via PIX",
+                    desc: "Gere um QR Code PIX e deposite qualquer valor. O saldo cai na sua conta na hora após confirmação do pagamento.",
+                    color: "#6366F1"
+                  },
+                  {
+                    step: "03",
+                    title: "Escolha um portfólio",
+                    desc: "Selecione entre Tesouro Direto (10,5% a.a.), Fundo Tech Global (15,2% a.a.) ou Crypto & Inovação (28,4% a.a.) conforme seu perfil de risco.",
+                    color: "#F59E0B"
+                  },
+                  {
+                    step: "04",
+                    title: "Seu dinheiro rende automaticamente",
+                    desc: "Os juros compostos são calculados em tempo real. Acompanhe seu patrimônio crescer diretamente no dashboard.",
+                    color: "#10B981"
+                  },
+                  {
+                    step: "05",
+                    title: "Saque quando quiser",
+                    desc: "Solicite um saque via PIX a qualquer momento. O valor é enviado diretamente para sua chave PIX em instantes.",
+                    color: "#EF4444"
+                  }
+                ].map((item) => (
+                  <div key={item.step} className="flex gap-5 items-start">
+                    <div 
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg"
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {item.step}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-brand-slate-900 mb-1">{item.title}</h3>
+                      <p className="text-brand-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-10 p-5 bg-brand-slate-50 rounded-2xl">
+                <p className="text-xs text-brand-slate-400 leading-relaxed">
+                  ⚠️ <strong>Aviso importante:</strong> Os rendimentos apresentados são simulações baseadas em dados históricos de mercado e não constituem garantia de retorno. Investimentos envolvem riscos. Consulte sempre um assessor financeiro antes de tomar decisões de investimento.
+                </p>
+              </div>
+
+              <button
+                onClick={() => { setShowHowItWorks(false); handleLogin(); }}
+                className="w-full mt-6 py-5 bg-brand-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-brand-slate-800 transition-all active:scale-95"
+              >
+                <LogIn className="w-5 h-5 text-brand-primary" />
+                Criar Conta Grátis
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
