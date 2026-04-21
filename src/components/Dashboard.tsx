@@ -437,7 +437,7 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
         <header className="flex justify-between items-center">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-brand-slate-900">Olá, {profile.name.split(' ')[0]}</h1>
-            <p className="text-brand-slate-500">O seu patrimônio cresceu 1.2% hoje.</p>
+            <p className="text-brand-slate-500">Simulação de rendimentos baseada em dados de mercado.</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="bg-white border border-brand-slate-200 px-6 py-2 rounded-full text-sm font-medium hover:bg-brand-slate-50 transition-colors shadow-sm">
