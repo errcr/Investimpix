@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import PixDeposit from './PixDeposit';
+import { useYieldCalculator } from '../lib/useYieldCalculator';
 import PixWithdraw from './PixWithdraw';
 import InvestmentCard from './InvestmentCard';
 import AIAdvisor from './AIAdvisor';
@@ -54,6 +55,7 @@ const mockChartData = [
 ];
 
 export default function Dashboard({ profile, onLogout }: DashboardProps) {
+  useYieldCalculator(profile.uid);
   const [showPix, setShowPix] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showAdvisor, setShowAdvisor] = useState(false);
