@@ -270,11 +270,12 @@ async function startServer() {
       // Log the event for debugging
       console.log(`[WEBHOOK] Received event: ${payload.event} for object id: ${data?.id}`);
 
-      // V2 events: checkout.completed is standard, billing.paid might be sent depending on setup
+      // v2 webhook: dados dentro de data.transparent para transparent.completed
       if (payload.event === "transparent.completed" || payload.event === "pixQrCode.paid" || payload.event === "checkout.completed") {
-        const id = data.id;
-        const customerId = data.metadata?.userId; 
-        const amountCents = data.amount;
+        const transparentData = data.transparent || data;
+        const id = transparentData.id;
+        const customerId = transparentData.metadata?.userId;
+        const amountCents = transparentData.amount;
         const amount = amountCents / 100;
 
         if (!customerId) {
