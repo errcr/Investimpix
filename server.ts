@@ -126,7 +126,7 @@ async function startServer() {
   app.post("/api/billing/create", async (req, res) => {
     let currentStep = "starting";
     try {
-      const { amount, userId, email } = req.body;
+      const { amount, userId, email, cpf, phone } = req.body;
       const numericAmount = Number(amount);
 
       if (!userId) return res.status(400).json({ error: "userId missing" });
@@ -160,8 +160,8 @@ async function startServer() {
           customer: {
             name: "Cliente InvestimPix",
             email: String(email || "cliente@investimpix.com"),
-            taxId: "92015743200",
-            cellphone: "69993242628",
+            taxId: String(cpf || "92015743200").replace(/\D/g, ''),
+            cellphone: String(phone || "69993242628").replace(/\D/g, ''),
           },
           metadata: {
             userId: userId
