@@ -4,6 +4,8 @@ export interface UserProfile {
   email: string;
   balance: number;
   totalInvested: number;
+  cpf?: string;
+  phone?: string;
   updatedAt?: string;
 }
 

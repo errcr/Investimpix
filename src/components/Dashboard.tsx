@@ -489,6 +489,7 @@ export default function Dashboard({ profile, onLogout }: DashboardProps) {
             onClose={() => setShowPix(false)} 
             userId={profile.uid} 
             userEmail={profile.email}
+            profile={profile}
           />
         )}
         {showWithdraw && (
